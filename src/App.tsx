@@ -12,6 +12,13 @@ function App() {
       return;
     }
 
+    const inputPassword = prompt("비밀번호를 입력해주세요.");
+
+    if (inputPassword !== import.meta.env.VITE_PASSWORD) {
+      alert("비밀번호가 일치하지 않습니다.");
+      return;
+    }
+
     try {
       await runWorkflow(ref);
 
