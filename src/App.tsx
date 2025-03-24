@@ -4,27 +4,38 @@ import { runWorkflow } from "./runWorkflow";
 
 function App() {
   // async/await 방식
-  async function triggerWorkflow() {
+  async function triggerWorkflow(ref: "prod" | "dev") {
+    const token = import.meta.env.VITE_GITHUB_TOKEN;
+
+    if (!token) {
+      alert("GitHub 토큰이 설정되지 않았습니다. .env 파일을 확인해주세요.");
+      return;
+    }
+
     try {
-      await runWorkflow({
-        owner: "AIVIS-inc",
-        repo: "Homepage-V2",
-        workflowId: "schedule.yml",
-        token: import.meta.env.VITE_GITHUB_TOKEN || "",
-      });
-      alert("Workflow triggered successfully");
+      await runWorkflow(ref);
+
+      alert("Workflow가 성공적으로 실행되었습니다.");
     } catch (error) {
-      alert(`Error: ${error}`);
+      console.error("오류 발생:", error);
+      if (error instanceof Error && error.message.includes("404")) {
+        alert(
+          "레포지토리를 찾을 수 없습니다. 레포지토리 이름과 접근 권한을 확인해주세요."
+        );
+      } else if (error instanceof Error && error.message.includes("401")) {
+        alert("인증 오류가 발생했습니다. GitHub 토큰을 확인해주세요.");
+      } else {
+        alert(
+          `오류 발생: ${error instanceof Error ? error.message : String(error)}`
+        );
+      }
     }
   }
 
-  const handleRunWorkflow = () => {
-    triggerWorkflow();
-  };
-
   return (
     <div className="App">
-      <button onClick={handleRunWorkflow}>Run Workflow</button>
+      <button onClick={() => triggerWorkflow("prod")}>Prod</button>
+      <button onClick={() => triggerWorkflow("dev")}>Dev</button>
     </div>
   );
 }

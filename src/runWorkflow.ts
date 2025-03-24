@@ -1,40 +1,28 @@
 import { Octokit } from "@octokit/rest";
 
-interface RunWorkflowOptions {
-  owner: string; // GitHub 레포지토리 소유자
-  repo: string; // GitHub 레포지토리 이름
-  workflowId: string; // workflow 파일 이름 (예: 'schedule.yml')
-  token: string; // GitHub Personal Access Token
-  ref?: string; // 실행할 브랜치 (기본값: 'main')
-}
+const octokit = new Octokit({
+  auth: import.meta.env.VITE_GITHUB_TOKEN,
+});
 
-export async function runWorkflow({
-  owner,
-  repo,
-  workflowId,
-  token,
-  ref = "main",
-}: RunWorkflowOptions): Promise<void> {
+export async function runWorkflow(ref: "prod" | "dev") {
+  // GitHub 레포지토리 정보
+  const owner = "AIVIS-inc"; // 레포지토리 소유자
+  const repo = "Homepage-V2"; // 레포지토리 이름
+  const workflow_id = "schedule.yml"; // 실행할 워크플로우 파일 이름 또는 ID
+
   try {
-    const octokit = new Octokit({
-      auth: token,
-    });
-
-    // workflow 실행
-    const response = await octokit.actions.createWorkflowDispatch({
+    const response = await octokit.rest.actions.createWorkflowDispatch({
       owner,
       repo,
-      workflow_id: workflowId,
-      ref,
+      workflow_id,
+      ref: ref === "prod" ? "main" : "release",
+      inputs: {
+        environment: ref,
+      },
     });
 
-    if (response.status === 204) {
-      console.log("Workflow triggered successfully");
-    } else {
-      throw new Error(`Failed to trigger workflow: ${response.status}`);
-    }
+    console.log("Workflow triggered successfully:", response.status);
   } catch (error) {
     console.error("Error triggering workflow:", error);
-    throw error;
   }
 }
