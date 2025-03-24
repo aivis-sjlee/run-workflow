@@ -15,7 +15,7 @@ export async function runWorkflow(ref: "prod" | "dev") {
       owner,
       repo,
       workflow_id,
-      ref: ref === "prod" ? "main" : "release",
+      ref: ref === "prod" ? "main" : "develop",
       inputs: {
         environment: ref,
       },
